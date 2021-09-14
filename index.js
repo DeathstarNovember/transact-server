@@ -15,7 +15,7 @@ const validUsernames = [goodUser.username, badUser.username]
 const app = express()
 
 app.get('/', (req, res) => {
-  const query = req.body
+  const query = req.query
 
   if (!validUsernames.includes(query.username)) {
     res.status(400).send('Invalid username')
