@@ -1,6 +1,6 @@
 import express from 'express'
 import faker from 'faker'
-const port = 3000
+const PORT = process.env.PORT || 3000
 const goodUser = {
   username: 'user_good',
   password: 'password_good',
@@ -58,6 +58,6 @@ app.get('/', (req, res) => {
 
   res.status(200).send(responseData)
 })
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+app.listen(PORT, () => {
+  console.log(`Example app listening at http://localhost:${PORT}`)
 })
