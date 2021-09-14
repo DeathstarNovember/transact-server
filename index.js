@@ -63,6 +63,8 @@ app.get('/', (req, res) => {
     addRecentTransactionWithStatus('VERIFIED')
   }
 
+  responseData.sort((a, b) => new Date(b.Date) - new Date(a.Date))
+
   res.setHeader('Content', 'application/json')
   res.status(200).send(responseData)
 })
