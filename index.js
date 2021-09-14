@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import faker from 'faker'
 const PORT = process.env.PORT || 3000
 const goodUser = {
@@ -13,6 +14,12 @@ const badUser = {
 const validUsernames = [goodUser.username, badUser.username]
 
 const app = express()
+
+app.use(
+  cors({
+    origin: '*',
+  }),
+)
 
 app.get('/', (req, res) => {
   const query = req.query
