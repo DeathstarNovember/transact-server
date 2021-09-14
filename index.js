@@ -56,6 +56,7 @@ app.get('/', (req, res) => {
     addRecentTransactionWithStatus('VERIFIED')
   }
 
+  res.setHeader('Content', 'application/json')
   res.status(200).send(responseData)
 })
 app.listen(PORT, () => {
