@@ -1,17 +1,21 @@
 import express from 'express'
 import cors from 'cors'
 import faker from 'faker'
-const PORT = process.env.PORT || 3000
-const goodUser = {
-  username: 'user_good',
-  password: 'password_good',
-}
-const badUser = {
-  username: 'user_bad',
-  password: 'password_bad',
-}
 
-const validUsernames = [goodUser.username, badUser.username]
+const PORT = process.env.PORT || 5000
+
+const salt = 'salt'
+
+export const users = [
+  {
+    username: 'user_good',
+    password: 'cGFzc3dvcmRfZ29vZA==',
+  },
+  {
+    username: 'user_bad',
+    password: 'cGFzc3dvcmRfYmFk',
+  },
+]
 
 const app = express()
 
@@ -21,12 +25,81 @@ app.use(
   }),
 )
 
-app.get('/', (req, res) => {
-  const query = req.query
+const tokenTtl = 3600000
 
-  if (!validUsernames.includes(query.username)) {
-    res.status(400).send('Invalid username')
+const crypt = (salt, text) => {
+  const textToChars = (text) => text.split('').map((c) => c.charCodeAt(0))
+  const byteHex = (n) => ('0' + Number(n).toString(16)).substr(-2)
+  const applySaltToChar = (code) =>
+    textToChars(salt).reduce((a, b) => a ^ b, code)
+
+  return text
+    .split('')
+    .map(textToChars)
+    .map(applySaltToChar)
+    .map(byteHex)
+    .join('')
+}
+
+const decrypt = (salt, encoded) => {
+  const textToChars = (text) => text.split('').map((c) => c.charCodeAt(0))
+  const applySaltToChar = (code) =>
+    textToChars(salt).reduce((a, b) => a ^ b, code)
+  return encoded
+    .match(/.{1,2}/g)
+    .map((hex) => parseInt(hex, 16))
+    .map(applySaltToChar)
+    .map((charCode) => String.fromCharCode(charCode))
+    .join('')
+}
+
+const getToken = () => {
+  const timestamp = Date.now().toString()
+  return crypt(salt, timestamp)
+}
+
+const getTimestamp = (token) => {
+  return decrypt(salt, token)
+}
+
+const validateToken = (token) => {
+  const timestamp = getTimestamp(token)
+
+  const elapsed = Date.now() - Number(timestamp)
+
+  if (elapsed < tokenTtl) {
+    return getToken()
   }
+}
+
+export const authenticate = (request) => {
+  const { username, password, token } = request.query
+
+  if (token) {
+    return validateToken(token)
+  }
+
+  const candidate = users.find((user) => username === user.username)
+
+  if (candidate && candidate.password === password) {
+    return getToken()
+  }
+}
+
+app.get('/auth', (req, res) => {
+  const authenticated = authenticate(req)
+  if (!authenticated) {
+    res.status(500).send('Unauthorized')
+  } else {
+    res.status(200).send(authenticated)
+  }
+})
+
+app.get('/', (req, res) => {
+  if (!authenticate(req)) {
+    res.status(500).send('Unauthorized')
+  }
+  const query = req.query
 
   let responseLength = Math.floor(Math.random() * 10)
 
