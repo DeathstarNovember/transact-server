@@ -1,5 +1,5 @@
-import express from 'express'
 import cors from 'cors'
+import express from 'express'
 import faker from 'faker'
 
 const PORT = process.env.PORT || 5000
@@ -96,9 +96,10 @@ app.get('/auth', (req, res) => {
 })
 
 app.get('/', (req, res) => {
-  if (!authenticate(req)) {
-    res.status(500).send('Unauthorized')
-  }
+  // if (!authenticate(req)) {
+  //   res.status(500).send('Unauthorized')
+  // }
+
   const query = req.query
 
   let responseLength = Math.floor(Math.random() * 10)
